@@ -1,0 +1,118 @@
+﻿@model DataApiService.Models.Machine
+@{
+    //Layout = null;
+}
+
+<main class="sidebar-page">
+    <div class="sidebar-page__content">
+        <div class="catalog">
+            <div class="catalog__head">
+                @using (Html.BeginForm("Index", "Machines", FormMethod.Post, new { @id = "filterr" }))
+                {
+                    @Html.Hidden("action_h", "edit", new { @class = "column_filt" })
+                    @Html.Hidden("id", Model.Machine_id, new { @class = "column_filt" })
+                    <div class="box catalog__head-row">
+                        <span style="margin-top: 30px;" class="catalog__label">Редактирование автомата</span>
+                        <div class="edite_add_block">
+                            <span class="catalog__label">Наименование</span>
+                            @Html.TextBox("name_mashine", Model?.Machine_name?.Replace(Model?.Terminal_id?.ToString(), "")?.Replace("(", "")?.Replace(")", ""), new { @class = "catalog__input", @placeholder = "Введите название модели", @style = "margin-bottom: 10px;" })
+                            <span class="catalog__label">Адрес</span>
+                            @Html.TextBox("address_mashine", Model.Machine_address, new { @class = "catalog__input", @placeholder = "Укажите адрес" })
+                            <div class="pseudoselect catalog__select" style="position:relative;">
+                                <span class="catalog__label" style="margin:10px 14px; ">Модель</span>
+                                @Html.Hidden("id_model", Model.Model_id, new { @class = "id_select" })
+                                <input type="text" class="pseudoselect__input" style="margin-top: 10px;" placeholder="Выберите модель" value="@Model.Machine_model">
+                                <div class="pseudoselect__dropdown custom-scroll" style="left: 0px;right: 0px;width: 100%;">
+                                    <div class="pseudoselect__current">@Model.Machine_model</div>
+                                    <div class="pseudoselect__list">
+                                        @foreach (var item in (IEnumerable<DataApiService.Models.MachineModel>)ViewData["MachinesModel"])
+                                        {
+                                            <li class="classifer" data-id="@item.Machine_model_id">@item.Machine_model_name</li>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pseudoselect catalog__select" style="position:relative;">
+                                <span class="catalog__label" style="margin:10px 14px; ">ID Терминала</span>
+                                <input name="terminal_id" type="text" value="@Model.Terminal_id" class="pseudoselect__input" style="margin-top: 10px;" placeholder="Выберите ID терминала" />
+                                <div class="pseudoselect__dropdown custom-scroll" style="left: 0px;right: 0px;width: 100%;">
+                                    <div class="pseudoselect__current">Не выбрано</div>
+                                    <div class="pseudoselect__list">
+                                        @foreach (var item in (IEnumerable<int>)ViewData["Terminal_id"])
+                                        {
+                                            <li>@item</li>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn catalog__btn gray">Отмена</button>
+                            <button class="btn catalog__btn">Сохранить</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</main>
+
+
+@section Scripts
+{
+    <script>
+        $(document).on('click ', function (e) {
+            if ($('.nav_menu').css('display') == 'block' && $($(e.target).parent()).attr('class') != 'open_menu_mob' && $(window).width() < 993) {
+                $('.nav_menu').fadeOut();
+            }
+        });
+        $('.open_menu_mob').on('click', function () {
+            $('.nav_menu').fadeIn();
+        });
+        $(document).ready(function () {
+            var numb_img = $('.column_filt_sort').val();
+            var numb_col = $('.column_filt').val();
+            if (numb_img > 0) {
+                var desc = 'sort-up';
+            } else {
+                var desc = 'sort-down';
+            }
+            $('[data-column=' + numb_col + ']').addClass(desc);
+        });
+
+
+        $('.btn.catalog__btn.gray').on('click', function (e) {
+            e.preventDefault(); // этот код предотвращает стандартное поведение браузера по клику
+            if ($('.del_formm').css('display') == 'block') {
+                $('.edite_add_block').fadeOut();
+            } else {
+                location.href = window.location.href;
+            }
+        });
+        $('.sort').on('click', function () {
+            if (!$(this).hasClass('no_arrow')) {
+                //if($(this).data('column') != '0') {
+                $('.column_filt').val($(this).data('column'));
+                if ($(this).attr('class') == "sort") {
+                    $('.column_filt_sort').val('-1');
+                } else {
+                    if ($(this).hasClass('sort-up')) {
+                        $('.column_filt_sort').val('-1');
+                    } else {
+                        $('.column_filt_sort').val('1');
+                    }
+                }
+                $('#filterr').submit();
+                //}
+            }
+        });
+        $('.page_table').on('click', function () {
+            var page = $(this).data('page');
+            $('.page_table.active').removeClass('active');
+            $(this).addClass('active');
+            $('.active_list').removeClass('active_list');
+            $('[data-list=' + page + ']').addClass('active_list');
+            $("body,html").animate({
+                scrollTop: 0
+            }, 800);
+        });
+    </script>
+}

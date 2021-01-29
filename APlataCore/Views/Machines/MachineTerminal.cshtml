@@ -1,0 +1,236 @@
+﻿@model IEnumerable<DataApiService.Models.InfoTerminalResults>
+@{
+    //Layout = null;
+    var machine = (DataApiService.Models.Machine)ViewData["Select_Machine"];
+    var arrNameCommand = (Dictionary<int, string>)ViewData["Name_command"];
+}
+
+<main class="sidebar-page">
+    <div class="sidebar-page__content">
+        <div class="catalog">
+            <div class="catalog__head">
+                @using (Html.BeginForm("Index", "Machines", FormMethod.Post, new { @id = "filterr" }))
+                {
+                    @Html.Hidden("id_command", "")
+                    @Html.Hidden("action_h", "sendterminal", new { @class = "column_filt" })
+                    @Html.Hidden("id", machine.Machine_id, new { @class = "column_filt" })
+                    <div class="box catalog__head-row">
+                        <span style="margin-top: 30px;" class="catalog__label">Отправка команды на терминал</span>
+                        <div class="edite_add_block">
+                            <div class="pseudoselect catalog__select" style="position:relative;">
+                                <span class="catalog__label" style="margin:10px 14px; ">Автомат</span>
+                                @Html.TextBox("machine_id", @machine.Machine_name.Replace(@machine.Terminal_id.ToString(), "").Replace("(", "").Replace(")", "") + " | " + @machine.Machine_address + " | " + @machine.Machine_model, new { @class = "pseudoselect__input", @style = "margin-top: 10px;", @placeholder = "Выберите автомат" })
+                                <div class="pseudoselect__dropdown custom-scroll" style="left: 0px;right: 0px;width: 100%;z-index:10;">
+                                    <div class="pseudoselect__current">@machine.Machine_name | <em>@machine.Machine_address</em> | @machine.Machine_model</div>
+                                    <div class="pseudoselect__list">
+                                        @foreach (var item in (IEnumerable<DataApiService.Models.Machine>)ViewData["machines_all"])
+                                        {
+                                            <li class="classifer" data-id="@item.Machine_id"> @item.Machine_name | <em>@item.Machine_address</em> | @item.Machine_model</li>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display:flex;width:100%;margin-left:-10px">
+                                <div class="pseudoselect catalog__select">
+                                    <span class="catalog__label">ID Терминала</span>
+                                    @Html.TextBox("terminal_id", machine.Terminal_id, new { @class = "catalog__input", @placeholder = "ID терминала" })
+                                </div>
+
+                                <div class="pseudoselect catalog__select" style="position:relative;">
+                                    <span class="catalog__label" style="margin:10px 14px; ">Команда</span>
+                                    @Html.Hidden("id_model", "", new { @class = "id_select" })
+                                    <input type="text" class="pseudoselect__input" placeholder="Выберите команду" value="">
+                                    <div class="pseudoselect__dropdown custom-scroll" style="left: 0px;right: 0px;width: 100%;">
+                                        <div class="pseudoselect__current">Не выбрано</div>
+                                        <div class="pseudoselect__list">
+                                            @foreach (var item in (IEnumerable<DataApiService.Models.Command>)ViewData["Commands"])
+                                            {
+                                                <li id="commands" class="classifer" data-id="@item.Id" data-dname1="@item.ParameterDefaultValue1"
+                                                    data-dname2="@item.ParameterDefaultValue2"
+                                                    data-name1="@item.ParameterName1"
+                                                    data-name2="@item.ParameterName2"
+                                                    data-name3="@item.ParameterName3"
+                                                    data-dname3="@item.ParameterDefaultValue3">@item.Name</li>
+                                                }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="body_name" style="width:100%;display:flex;margin-left:-20px;">
+                                <div id="divname1" class="pseudoselect catalog__select">
+                                    <span class="catalog__label">Reader Feature Level</span>
+                                    @Html.TextBox("name1", "", new { @class = "catalog__input" })
+                                </div>
+                                <div id="divname2" class="pseudoselect catalog__select">
+                                    <span class="catalog__label">Scale Factor</span>
+                                    @Html.TextBox("name2", "", new { @class = "catalog__input" })
+                                </div>
+                                <div id="divname3" class="pseudoselect catalog__select">
+                                    <span class="catalog__label">Decimal places</span>
+                                    @Html.TextBox("name3", "", new { @class = "catalog__input" })
+                                </div>
+                            </div>
+
+                            <button class="btn catalog__btn gray">Отмена</button>
+                            <button class="btn catalog__btn">Отправить</button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="catalog__body">
+                <div class="table-wrapper">
+                    <table class="catalog__table">
+                        <thead>
+                            <tr>
+                                <th class="sort" data-column="0" width="60">№</th>
+                                <th class="sort" data-column="1">Дата и время</th>
+                                <th class="sort" data-column="2">Команда</th>
+                                <th class="sort" data-column="3">Параметр 1</th>
+                                <th class="sort" data-column="4">Параметр 2</th>
+                                <th class="sort" data-column="5">Параметр 3</th>
+                                <th class="sort" data-column="6">Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null)
+                            {
+                                int i = 0;
+
+                                foreach (var item in Model)
+                                {
+                                    i++;
+                                    <tr>
+                                        <td>@i</td>
+                                        <td>
+                                            <p>@item.time_created</p>
+                                            <p><small><em>@item.time_delivered</em></small></p>
+                                        </td>
+                                        <td>@arrNameCommand[item.command_id]</td>
+                                        <td>@item.parameter1</td>
+                                        <td>@item.parameter2</td>
+                                        <td>@item.parameter3</td>
+                                        <td>
+                                            @switch (item.state)
+                                            {
+                                                case -1:
+                                                    {
+                                                        <span class="classic-label__text">
+                                                            <img data-action="terminal" class="edit_item" style="cursor: pointer;" src="/images/warning.svg" alt="">
+                                                            <span class="tooltip right">@item.state_name</span>
+                                                        </span>
+                                                        break;
+                                                    }
+                                                case 0:
+                                                    {
+                                                        <span class="classic-label__text">
+                                                            <img data-action="terminal" class="edit_item" style="cursor: pointer;" src="/images/notice.svg" alt="">
+                                                            <span class="tooltip right">@item.state_name</span>
+                                                        </span>
+                                                        break;
+                                                    }
+                                                case 1:
+                                                    {
+                                                        <span class="classic-label__text">
+                                                            <img data-action="terminal" class="edit_item" style="cursor: pointer;" src="/images/check-circle--grad.svg" alt="">
+                                                            <span class="tooltip right">@item.state_name</span>
+                                                        </span>
+                                                        break;
+                                                    }
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section Scripts
+                                            {
+    <script>
+        $(document).ready(() => {
+            $("#body_name").hide();
+
+            var numb_img = $('.column_filt_sort').val();
+            var numb_col = $('.column_filt').val();
+            if (numb_img > 0) {
+                var desc = 'sort-up';
+            } else {
+                var desc = 'sort-down';
+            }
+            $('[data-column=' + numb_col + ']').addClass(desc);
+        })
+
+        $(document).on('click ', function (e) {
+            if (e.target.tagName === "LI" && e.target.id === "commands") {
+                $("#id_command").val($(e.target).data("id") + "|" + $(e.target).data("dname1") + "|" + $(e.target).data("dname2") + "|" + $(e.target).data("dname3"));
+
+                if ($(e.target).data("name1") !== "") {
+                    $("#name1").val($(e.target).data("dname1"))
+                    $("#body_name").show();
+                    $("#divname1").show();
+                }
+                else {
+                    $("#divname1").hide();
+                }
+
+                if ($(e.target).data("name2") !== "") {
+                    $("#name2").val($(e.target).data("dname2"))
+                    $("#body_name").show();
+                    $("#divname2").show();
+                } else {
+                    $("#divname2").hide();
+                }
+
+                if ($(e.target).data("name3") !== "") {
+                    $("#name3").val($(e.target).data("dname3"))
+                    $("#body_name").show();
+                    $("#divname3").show();
+                } else {
+                    $("#divname3").hide();
+                }
+            }
+
+        });
+
+
+        $('.add_item').on('click', function (e) {
+            e.preventDefault(); // этот код предотвращает стандартное поведение браузера по клику
+            $('.action_name').val($(this).data('action'));
+            $('#filterr_action').submit();
+        });
+
+        $('.btn.catalog__btn.gray').on('click', function (e) {
+            e.preventDefault(); // этот код предотвращает стандартное поведение браузера по клику
+            if ($('.del_formm').css('display') == 'block') {
+                $('.edite_add_block').fadeOut();
+            } else {
+                location.href = window.location.href;
+            }
+        });
+
+        $('.sort').on('click', function () {
+            if (!$(this).hasClass('no_arrow')) {
+                //if($(this).data('column') != '0') {
+                $('.column_filt').val($(this).data('column'));
+                if ($(this).attr('class') == "sort") {
+                    $('.column_filt_sort').val('-1');
+                } else {
+                    if ($(this).hasClass('sort-up')) {
+                        $('.column_filt_sort').val('-1');
+                    } else {
+                        $('.column_filt_sort').val('1');
+                    }
+                }
+                $('#filterr').submit();
+                //}
+            }
+        });
+
+    </script>
+}

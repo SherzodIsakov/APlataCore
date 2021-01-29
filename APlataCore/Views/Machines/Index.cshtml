@@ -1,0 +1,177 @@
+﻿@model IEnumerable<APlataCore.Domain.Models.Machines>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="sidebar-page__content" style="position:relative;">
+    <div class="edite_add_block del_formm">
+        @using (Html.BeginForm("Delete", "Machines", FormMethod.Post, new { @id = "filterr_delete" }))
+        {
+            @Html.Hidden("action", "delete", new { @class = "column_filt" })
+            @Html.Hidden("id", "", new { @class = "column_filt id_action_del" })
+            <span class="catalog__label">Удалить этот автомат?</span>
+            <button class="btn catalog__btn gray">Отмена</button>
+            <button class="btn catalog__btn delete_item_ok">Удалить</button>
+        }
+    </div>
+    <div class="catalog">
+        <div class="catalog__head">
+            @using (Html.BeginForm("Index", "Machines", FormMethod.Post, new { @id = "filterr_action" }))
+            {
+                @Html.Hidden("action", "view")
+                @Html.Hidden("action_name", "", new { @class = "action_name" })
+                @Html.Hidden("terminal_id", "", new { @class = "terminal_id" })
+                @Html.Hidden("id", "", new { @class = "id_action" })
+                @Html.Hidden("name", "", new { @class = "name_action" })
+            }
+            @using (Html.BeginForm("Index", "Machines", FormMethod.Post, new { @id = "filterr" }))
+            {
+                @Html.Hidden("filter[order_num]", 0, new { @class = "column_filt" })
+                @Html.Hidden("filter[order_direction]", -1, new { @class = "column_filt_sort" })
+                <div class="box catalog__head-row">
+                    <button data-action="add" class="btn catalog__btn blue add_item">Добавить +</button>
+                    @Html.TextBox("filter[str_filter]", "", new { @class = "catalog__input", @type = "search", placeholder = "Поиск по таблице" })
+                    <button class="btn catalog__btn">Применить</button>
+                </div>
+            }
+        </div>
+        <div class="catalog__body">
+            <div class="table-wrapper">
+                <table class="catalog__table">
+                    <thead>
+                        <tr>
+                            <th class="sort" data-column="0" width="60">№</th>
+                            <th class="sort" data-column="1">Автомат</th>
+                            <th class="sort no_arrow" data-column="2" width="150">ID Терминала</th>
+                            <th class="sort no_arrow" data-column="3" width="250">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null)
+                        {
+                            int i = 0;
+
+                            foreach (var item in Model)
+                            {
+                                i++;
+                                <tr>
+                                    <td>@i</td>
+                                    <td>
+                                        <p> @item.Name</p>
+                                        <p><small><em>@item.Address</em></small></p>
+                                        <p><small>@item.MachineModel</small></p>
+                                    </td>
+                                    <td>@item.StateID</td>
+                                    <td>
+                                        <div style="display: flex;padding: 10px 0 0;align-items: baseline;justify-content: space-around;">
+                                            <span class="classic-label__text">
+                                                <img data-action="edit" data-id="@item.Id" class="edit_item" style="cursor: pointer;" src="/images/edit.png" alt="">
+                                                <span class="tooltip">Изменить</span>
+                                            </span>
+                                            <span class="classic-label__text">
+                                                <img data-action="delete" data-id="@item.Id" class="delete_item" style="cursor: pointer;" src="/images/delete.png" alt="">
+                                                <span class="tooltip">Удалить</span>
+                                            </span>
+                                            <span class="classic-label__text">
+                                                <img data-action="matrix" data-id="@item.Id"
+                                                     class="edit_item" style="cursor: pointer;" src="/images/matrix.png" alt="">
+                                                <span class="tooltip right">Товарная матрица</span>
+                                            </span>
+                                            <span class="classic-label__text">
+                                                <img data-action="terminal" data-id="@item.Id" data-terminal="@item.StateID" data-name="terminal" class="edit_item" style="cursor: pointer;" src="/images/send.png" alt="">
+                                                <span class="tooltip right">Отправить команду на терминал</span>
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script>
+        $(document).on('click ', function (e) {
+            if ($('.nav_menu').css('display') == 'block' && $($(e.target).parent()).attr('class') != 'open_menu_mob' && $(window).width() < 993) {
+                $('.nav_menu').fadeOut();
+            }
+        });
+        $('.open_menu_mob').on('click', function () {
+            $('.nav_menu').fadeIn();
+        });
+        $(document).ready(function () {
+            var numb_img = $('.column_filt_sort').val();
+            var numb_col = $('.column_filt').val();
+            if (numb_img > 0) {
+                var desc = 'sort-up';
+            } else {
+                var desc = 'sort-down';
+            }
+            $('[data-column=' + numb_col + ']').addClass(desc);
+        });
+        $('.add_item').on('click', function (e) {
+            e.preventDefault(); // этот код предотвращает стандартное поведение браузера по клику
+            $('.action_name').val($(this).data('action'));
+            $('#filterr_action').submit();
+        });
+        $('.edit_item').on('click', function () {
+
+            $('.id_action').val($(this).data('id'));
+            $('.name_action').val($(this).data('name'));
+            $('.action_name').val($(this).data('action'));
+            $('.terminal_id').val($(this).data('terminal'));
+            $('#filterr_action').submit();
+        });
+        $('.delete_item').on('click', function () {
+            $('#filterr_delete').find('.id_action_del').val($(this).data('id'));
+            $('.edite_add_block').fadeIn();
+        });
+        $('.delete_item_ok').on('click', function () {
+            $('#filterr_delete').submit();
+            $('.edite_add_block').fadeOut();
+        });
+        $('.btn.catalog__btn.gray').on('click', function (e) {
+            e.preventDefault(); // этот код предотвращает стандартное поведение браузера по клику
+            if ($('.del_formm').css('display') == 'block') {
+                $('.edite_add_block').fadeOut();
+            } else {
+                location.href = window.location.href;
+            }
+        });
+        $('.sort').on('click', function () {
+            if (!$(this).hasClass('no_arrow')) {
+                //if($(this).data('column') != '0') {
+                $('.column_filt').val($(this).data('column'));
+                if ($(this).attr('class') == "sort") {
+                    $('.column_filt_sort').val('-1');
+                } else {
+                    if ($(this).hasClass('sort-up')) {
+                        $('.column_filt_sort').val('-1');
+                    } else {
+                        $('.column_filt_sort').val('1');
+                    }
+                }
+                $('#filterr').submit();
+                //}
+            }
+        });
+        $('.page_table').on('click', function () {
+            var page = $(this).data('page');
+            $('.page_table.active').removeClass('active');
+            $(this).addClass('active');
+            $('.active_list').removeClass('active_list');
+            $('[data-list=' + page + ']').addClass('active_list');
+            $("body,html").animate({
+                scrollTop: 0
+            }, 800);
+        });
+    </script>
+}
